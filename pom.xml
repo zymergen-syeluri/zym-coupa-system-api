@@ -36,13 +36,15 @@
 						<username>${username}</username>
 						<password>${password}</password>
 						<applicationName>${app.name}</applicationName>
-						<env>${env}</env>
-						<key>${key}</key>
 						<environment>Sandbox</environment>
 						<workerType>MICRO</workerType>
 						<region>us-west-1</region>
 						<workers>1</workers>
 						<objectStoreV2>true</objectStoreV2>
+						<properties>
+							<env>${env}</env>
+							<key>${key}</key>
+						</properties>
 					</cloudHubDeployment>
 				</configuration>
 			</plugin>

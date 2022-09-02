@@ -1,0 +1,51 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="netsuiteUpdateEmployee" format="json">
+      <types:shape format="weave" example="examples/modifiedUserData.json"><![CDATA[%dw 2.0
+
+type netsuiteUpdateEmployee = Array<{|  lastName: String,   commissionPaymentPreference: String,   gender: String,   isInactive: Boolean,   approvalLimit: Number {"typeId": "double"},   title: String,   internalId: String,   billPay: Boolean,   dateCreated: String,   currency: {|    externalId: Null,     "type": Null,     internalId: String,     name: String  |},   department: {|    externalId: Null,     "type": Null,     internalId: String,     name: String  |},   defaultExpenseReportCurrency: {|    externalId: Null,     "type": Null,     internalId: String,     name: String  |},   email: String,   giveAccess: Boolean,   customFieldList: {|    customField: Array<{|      LongCustomFieldRef__custentity_cg_coupa_entity_id: Number {"typeId": "int"},       BooleanCustomFieldRef__custentity_cg_include_in_coupa: Boolean,       SelectCustomFieldRef__custentity_jp_due_date_adjustment: {|        internalId: String,         name: String,         externalId: Null,         typeId: String      |},       BooleanCustomFieldRef__custentity_cg_cc_user: Boolean,       BooleanCustomFieldRef__custentity_2663_payment_method: Boolean,       DateCustomFieldRef__custentity_esc_last_modified_date: String,       BooleanCustomFieldRef__custentity_rfs_picker: Boolean,       SelectCustomFieldRef__custentity_svb_payee_acct_type: {|        internalId: String,         name: String,         externalId: Null,         typeId: String      |}    |}>
+  |}, 
+  hireDate: String, 
+  lastModifiedDate: String, 
+  releaseDate: String, 
+  initials: String, 
+  externalId: String, 
+  entityId: String, 
+  subsidiary: {|
+    externalId: Null, 
+    "type": Null, 
+    internalId: String, 
+    name: String
+  |}, 
+  firstName: String, 
+  mobilePhone: String, 
+  location: {|
+    externalId: Null, 
+    "type": Null, 
+    internalId: String, 
+    name: String
+  |}, 
+  supervisor: {|
+    externalId: Null, 
+    "type": Null, 
+    internalId: String, 
+    name: String, 
+    coupaId: String
+  |}, 
+  defaultAddress: String
+|}> {"example": "[{\\\"lastName\\\":\\\"Sinha\\\",\\\"commissionPaymentPreference\\\":\\\"SYSTEM_PREFERENCE\\\",\\\"gender\\\":\\\"OMITTED\\\",\\\"isInactive\\\":false,\\\"approvalLimit\\\":10.0,\\\"title\\\":\\\"Senior Software Engineer (III)\\\",\\\"internalId\\\":\\\"34755\\\",\\\"billPay\\\":false,\\\"dateCreated\\\":\\\"2020-08-04T09:27:35\\\",\\\"currency\\\":{\\\"externalId\\\":null,\\\"type\\\":null,\\\"internalId\\\":\\\"1\\\",\\\"name\\\":\\\"USD\\\"},\\\"department\\\":{\\\"externalId\\\":null,\\\"type\\\":null,\\\"internalId\\\":\\\"24\\\",\\\"name\\\":\\\"Technology : IT Infrastructure\\\"},\\\"defaultExpenseReportCurrency\\\":{\\\"externalId\\\":null,\\\"type\\\":null,\\\"internalId\\\":\\\"1\\\",\\\"name\\\":\\\"USD\\\"},\\\"email\\\":\\\"asinha@zymergen.com\\\",\\\"giveAccess\\\":true,\\\"customFieldList\\\":{\\\"customField\\\":[{\\\"LongCustomFieldRef__custentity_cg_coupa_entity_id\\\":1277,\\\"BooleanCustomFieldRef__custentity_cg_include_in_coupa\\\":false,\\\"SelectCustomFieldRef__custentity_jp_due_date_adjustment\\\":{\\\"internalId\\\":\\\"3\\\",\\\"name\\\":\\\"No Change\\\",\\\"externalId\\\":null,\\\"typeId\\\":\\\"304\\\"},\\\"BooleanCustomFieldRef__custentity_cg_cc_user\\\":false,\\\"BooleanCustomFieldRef__custentity_2663_payment_method\\\":false,\\\"DateCustomFieldRef__custentity_esc_last_modified_date\\\":\\\"2020-09-06T00:00:00\\\",\\\"BooleanCustomFieldRef__custentity_rfs_picker\\\":false,\\\"SelectCustomFieldRef__custentity_svb_payee_acct_type\\\":{\\\"internalId\\\":\\\"2\\\",\\\"name\\\":\\\"CHK\\\",\\\"externalId\\\":null,\\\"typeId\\\":\\\"209\\\"}}]},\\\"hireDate\\\":\\\"2020-08-03T00:00:00\\\",\\\"lastModifiedDate\\\":\\\"2020-09-06T21:28:52\\\",\\\"releaseDate\\\":\\\"2020-10-17T00:00:00\\\",\\\"initials\\\":\\\"AS\\\",\\\"externalId\\\":\\\"11578\\\",\\\"entityId\\\":\\\"Sinha, Ankit\\\",\\\"subsidiary\\\":{\\\"externalId\\\":null,\\\"type\\\":null,\\\"internalId\\\":\\\"1\\\",\\\"name\\\":\\\"Zymergen Inc.\\\"},\\\"firstName\\\":\\\"Ankit\\\",\\\"mobilePhone\\\":\\\"(123) 456-7890\\\",\\\"location\\\":{\\\"externalId\\\":null,\\\"type\\\":null,\\\"internalId\\\":\\\"63\\\",\\\"name\\\":\\\"Emeryville - TBA\\\"},\\\"supervisor\\\":{\\\"externalId\\\":null,\\\"type\\\":null,\\\"internalId\\\":\\\"15545\\\",\\\"name\\\":\\\"Ghuge, Ashalata\\\",\\\"coupaId\\\":\\\"12345\\\"},\\\"defaultAddress\\\":\\\"Ankit Sinha<br>39199 Guardino Dr<br>Apt 171<br>Fremont CA 94538<br>United States\\\"}]"}
+
+]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#c6df00c4-ac00-4815-9245-8f367974cfe2">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="netsuiteUpdateEmployee"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

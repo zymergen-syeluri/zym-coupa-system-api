@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule
+	xmlns:oauth="http://www.mulesoft.org/schema/mule/oauth"
+	xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:coupa="http://www.mulesoft.org/schema/mule/coupa"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/coupa http://www.mulesoft.org/schema/mule/coupa/current/mule-coupa.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/oauth http://www.mulesoft.org/schema/mule/oauth/current/mule-oauth.xsd">
+
+	<secure-properties:config
+		name="Secure_Properties_Config" doc:name="Secure Properties Config"
+		doc:id="5bd2456a-2685-47b1-a296-1a1518a89976"
+		file="${mule.env}-config.yaml" key="${encryption.key}">
+	</secure-properties:config>
+
+	<coupa:config name="Coupa_Config" doc:name="Coupa Config"
+		doc:id="7a690b94-031f-407d-9072-b547003bd657">
+		<coupa:coupa-connection
+			coupaInstance="https://${secure::coupa.api.instance}"
+			apiKey="${secure::coupa.api.value}">
+			<reconnection>
+				<reconnect
+					count="${secure::coupa.api.reconnection.attempts}"
+					frequency="${secure::coupa.api.reconnection.frequency}" />
+			</reconnection>
+		</coupa:coupa-connection>
+	</coupa:config>
+
+	<http:listener-config name="HTTP_Listener_config"
+		doc:name="HTTP Listener config"
+		doc:id="ecfad498-bbae-4b27-885d-62677bdfb2b3"
+		basePath="${secure::http.listener.basepath}">
+		<http:listener-connection
+			host="${secure::http.listener.host}"
+			port="${secure::http.listener.port}"
+			connectionIdleTimeout="${secure::http.listener.timeout}">
+			<reconnection >
+				<reconnect count="${secure::http.listener.reconnection.attempts}" frequency="${secure::http.listener.reconnection.frequency}"/>
+			</reconnection>
+		</http:listener-connection>
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration_Coupa" doc:name="HTTP Request configuration" doc:id="0fc289fc-ef11-4871-b7fb-daf4eb488782" responseTimeout="60000" preserveHeadersCase="true">
+		<http:request-connection host="${secure::coupa.api.instance}" port="443" usePersistentConnections="false" connectionIdleTimeout="300000" protocol="HTTPS">
+			<reconnection >
+				<reconnect frequency="${secure::coupa.api.reconnection.frequency}" count="${secure::coupa.api.reconnection.attempts}"/>
+			</reconnection>
+			<http:authentication >
+				<oauth:client-credentials-grant-type clientId="${secure::coupa.api.clientId}" clientSecret="${secure::coupa.api.clientSecret}" scopes="${secure::coupa.api.scopes}" tokenUrl="${secure::coupa.api.tokenUrl}"/>
+			</http:authentication>
+		</http:request-connection>
+		<http:default-headers >
+			<!-- <http:default-header key="${secure::coupa.api.key}" value="${secure::coupa.api.value}" /> -->
+			<http:default-header key="${secure::http.requester.queryParam.name}" value="${secure::http.requester.queryParam.value}" />
+		</http:default-headers>
+	</http:request-config>
+</mule>

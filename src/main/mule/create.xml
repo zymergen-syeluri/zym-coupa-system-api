@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:coupa="http://www.mulesoft.org/schema/mule/coupa"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/coupa http://www.mulesoft.org/schema/mule/coupa/current/mule-coupa.xsd">
+	<flow name="createLookupValueInCoupa"
+		doc:id="decb59b5-84cb-40aa-a552-a5b1039c7124">
+		<http:listener doc:name="Listener"
+			doc:id="f1c798df-7dbe-4c81-9966-f1c23fd82481"
+			config-ref="HTTP_Listener_config" path="createLookupValueInCoupa"
+			allowedMethods="POST" />
+		<logger level="INFO" doc:name="Logger"
+			message="#[&quot;Creating the '&quot; ++ payload.lookup.name ++&quot;' lookup in Coupa for &quot; ++ payload.name ++ &quot;(nestuiteID: &quot; ++ payload.&quot;external-ref-num&quot; ++ &quot;)&quot;]" />
+		<http:request method="POST" doc:name="createLookupValueInCoupa"
+			doc:id="03a206e5-c24b-4c47-8cb4-028eaeb0f4b4"
+			path="${secure::http.requester.lookupValuespath}"
+			config-ref="HTTP_Request_configuration_Coupa" >
+		</http:request>
+		<logger level="INFO" doc:name="Logger"
+			doc:id="6cf8fce4-a93a-4305-b7a9-965d666bd448"
+			message='#["++++++++++ lookup: " ++ payload.name ++ "(coupaId: " ++ payload.id ++ ") created Successfully ++++++++++++"]' />
+		<error-handler>
+			<on-error-propagate enableNotifications="true"
+				logException="true" doc:name="On Error propagate"
+				doc:id="62ccadf2-86f2-4a07-8b5b-b5b238caa735">
+				<logger level="ERROR" doc:name="Logger"
+					doc:id="22313959-653f-46f3-bcb1-2720946f27b9"
+					message="#[error.exception.errorMessage.typedValue]" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	
+	<flow name="createExchangeRateInCoupa"
+		doc:id="6e02d8c8-1b0d-456c-ae8b-be77458c017b">
+		<http:listener doc:name="Listener"
+			doc:id="77df250c-eab6-431c-b300-8e0941d4ddaf"
+			config-ref="HTTP_Listener_config" path="createExchangeRateInCoupa" >
+			<http:error-response >
+				<http:body ><![CDATA[#[output text/plain --- (error.description default "") ++ "--"++ (error.exception.errorMessage.typedValue.^raw default "")]]]></http:body>
+			</http:error-response>
+		</http:listener>
+		<logger level="INFO" doc:name="Logger"
+			doc:id="42aabcc0-378a-4069-9a3f-4d2c5a5e66d0"
+			message="#[&quot;++++++++++++++++ Request received for creating exchange rate: &quot; ++ payload.'from-currency'.code ++ &quot;--&gt;&quot; ++ payload.'to-currency'.code ++ &quot;++++++++++++++++&quot;]" />
+		<http:request method="POST" doc:name="Request"
+			doc:id="658b0a1c-a51e-4d99-85a0-919958c802b9"
+			path="${secure::http.requester.exchangeRatePath}"
+			config-ref="HTTP_Request_configuration_Coupa" />
+		<logger level="INFO" doc:name="Logger"
+			doc:id="43d7cba3-c529-419c-b7d4-0d261e828f84"
+			message='#["++++++++++++++++ Exchange rate created successfully +++++++++++++++++++"]' />
+		<error-handler>
+			<on-error-propagate enableNotifications="true"
+				logException="true" doc:name="On Error propagate"
+				doc:id="62acb961-ac96-4da6-a8e9-74552456f58a">
+				<logger level="ERROR" doc:name="Logger"
+					doc:id="f3aa1134-09a7-4a7a-8b9b-82c0fd94bd83"
+					message="#[error.exception.errorMessage.typedValue]" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	
+		<flow name="createInvoiceInCoupa"
+		doc:id="7bc89083-b4eb-480b-bff4-a577c07e8d9a">
+		<http:listener doc:name="Listener"
+			doc:id="5deef120-ab58-4a46-84fb-3a89ed39f68d"
+			config-ref="HTTP_Listener_config" path="createInvoiceInCoupa" >
+			<http:error-response >
+				<http:body ><![CDATA[#[output text/plain --- (error.description default "") ++ "--"++ (error.exception.errorMessage.typedValue.^raw default "")]]]></http:body>
+			</http:error-response>
+		</http:listener>
+		<logger level="INFO" doc:name="Logger"
+			doc:id="c741fd2d-72d0-4770-8cd4-c1c2b2bbb575"
+			message='#["++++++++++++++++ Request received for creating Invoice : " ++ payload."invoice-number" ++ " ++++++++++++++++"]' />
+		<http:request method="POST" doc:name="Request"
+			doc:id="44ea8ad5-1bad-4161-b9cd-c73a8a4cb4ea"
+			path="${secure::http.requester.invoicesPath}"
+			config-ref="HTTP_Request_configuration_Coupa" />
+		<logger level="INFO" doc:name="Logger"
+			doc:id="5f195cae-b4e5-446d-8c2e-ed363470a57b"
+			message='#["++++++++++++++++ Invoice created successfully +++++++++++++++++++"]' />
+		<error-handler>
+			<on-error-propagate enableNotifications="true"
+				logException="true" doc:name="On Error propagate"
+				doc:id="ce3d4ae2-7029-4957-beff-b72f21deeba0">
+				<logger level="ERROR" doc:name="Logger"
+					doc:id="725627a2-e3b4-43f3-8df6-6293a7606995"
+					message='#["Create Invoice Error " ++ error.exception.errorMessage.typedValue]' />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	
+		<flow name="createInvoiceAttachmentInCoupa"
+		doc:id="0ee917ab-1ac4-4ef1-b26d-f0d2d229a929">
+		<http:listener doc:name="Listener"
+			doc:id="703c2a3e-1114-413d-acfe-3e6794fe693f"
+			config-ref="HTTP_Listener_config" path="createInvoiceAttachmentInCoupa" >
+			<http:error-response >
+				<http:body ><![CDATA[#[output text/plain --- (error.description default "") ++ "--"++ (error.exception.errorMessage.typedValue.^raw default "")]]]></http:body>
+			</http:error-response>
+		</http:listener>
+		<logger level="INFO" doc:name="Logger"
+			doc:id="74434fff-88dd-4814-97ed-9009fd9eef61"
+			message='#["++++++++++++++++ Request received for creating Invoice Attachment in Coupa Id " ++ attributes.queryParams.invoiceId ++ " ++++++++++++++++"]' />
+		<ee:transform doc:name="Transform Message" doc:id="e4bfd7c8-c1a5-4c18-981e-b8505113b87c">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+import * from dw::core::Binaries
+output multipart/form-data boundary="aA1bB2cC3dD4"
+---
+{
+ 	parts: {
+		'attachment[file]' : {
+      			headers : {
+        "Content-Disposition" : {
+            "name": "attachment[file]",
+            "filename": "SimpleLegal_Invoice.pdf"
+        },
+        "Content-Type" : "application/pdf"
+      },
+      content : fromBase64(payload)
+    		}
+		}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="POST" doc:name="Request"
+			doc:id="cde868b7-c11f-46cc-b50f-43de6531442b"
+			path="${secure::http.requester.invoicesAttachmentPath}"
+			config-ref="HTTP_Request_configuration_Coupa" >
+			<http:uri-params ><![CDATA[#[attributes.queryParams]]]></http:uri-params>
+		</http:request>
+		<logger level="INFO" doc:name="Logger"
+			doc:id="46dc87c5-b468-4f55-950a-08a791245bee"
+			message='#["++++++++++++++++ Invoice created successfully for Coupa Id" ++ payload.id ++ "+++++++++++++++++++"]' />
+		<error-handler>
+			<on-error-propagate enableNotifications="true"
+				logException="true" doc:name="On Error propagate"
+				doc:id="1d139150-2dde-4aef-a998-fc299ce1d70c">
+				<logger level="ERROR" doc:name="Logger"
+					doc:id="79463d11-22dc-4c9f-ab1d-72196a5a5b95"
+					message='#["Create Invoice Attachment Error " ++ error.exception.errorMessage.typedValue]' />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>

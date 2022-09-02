@@ -1,0 +1,468 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:coupa="http://www.mulesoft.org/schema/mule/coupa"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/coupa http://www.mulesoft.org/schema/mule/coupa/current/mule-coupa.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+
+
+	<flow name="updateEmployeeInCoupaById"
+		doc:id="647b4d54-2ceb-4a33-bc31-7f3cbdf4b74d">
+		<http:listener doc:name="Listener"
+			doc:id="ec92c1b1-364c-43da-a88e-c6173163c2ce"
+			config-ref="HTTP_Listener_config" path="updateEmployeeInCoupaById"
+			allowedMethods="PUT" />
+		<logger level="INFO" doc:name="Logger"
+			doc:id="de115af2-e2e6-4cad-a9c0-17bee2662031"
+			message=" #[&quot;Request received for updating Coupa user with email : -  &quot;++ payload .email default '' ++ &quot;.&quot;]" />
+		<ee:transform doc:name="Transform Message"
+			doc:id="c6df00c4-ac00-4815-9245-8f367974cfe2">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+//check if the user is disabled if yes disable the user in coupa and exit else 
+if (payload.isInactive == true) 
+{
+	id: payload.customFieldList.customField[0].LongCustomFieldRef__custentity_cg_coupa_entity_id,
+	active: false
+} 
+
+else(
+{
+	id: payload.customFieldList.customField[0].LongCustomFieldRef__custentity_cg_coupa_entity_id,
+	login: payload.email,
+	email: payload.email,
+	"sso-identifier": payload.email,
+	lastname: payload.lastName,
+	firstname: payload.firstName,
+	active: true,
+	"employee-number": payload.externalId,
+	"expense-user": true,
+	"purchasing-user": if (payload.purchaseOrderLimit != null and payload.purchaseOrderLimit > 0 ) true else false,
+	"custom-fields": {
+		"subsidary": {
+			"external-ref-num": payload.subsidiary.internalId
+		},
+//		"location": {"external-ref-num": payload.location.internalId},
+		"dept": {
+			"external-ref-num": payload.department.internalId
+		},
+		"ns-employee-id": payload.internalId,
+		"company-paid-credit-card": payload.customFieldList.customField.BooleanCustomFieldRef__custentity_cg_cc_user
+	},
+	"default-account-type": {
+		id: 2
+	},
+	"requisition-approval-limit": {
+        "amount": payload.purchaseOrderApprovalLimit,
+        "currency": {
+            "code": payload.currency.name
+        }
+    },
+	"expense-approval-limit": {
+		amount: payload.approvalLimit,
+		currency: {
+			code: payload.currency.name
+		}
+	},
+	"invoice-approval-limit": {
+        "amount": payload.purchaseOrderApprovalLimit,
+        "currency": {
+            "code": payload.currency.name
+         }
+    },
+    "requisition-self-approval-limit": {
+        "amount": payload.purchaseOrderLimit,
+        "currency": {
+            "code": payload.currency.name
+         }
+    },
+	"mention-name": "",
+	"default-currency": {
+		"code": payload.currency.name
+	},
+	"authentication-method": "saml",
+	"manager": {
+		"id": payload.managerCoupaId
+	},
+	"roles":if (payload.purchaseOrderLimit != null and payload.purchaseOrderLimit > 0 )[
+		{	"name": "Expense User"	},
+		{	"name": "Zym User"		}
+	] else [
+		{	"name": "Expense User"	}
+	]
+}
+//else is closed here below
+)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<coupa:update-object doc:name="UpdateUser"
+			doc:id="f75980c4-0763-44a9-b62f-05ec209b7896"
+			config-ref="Coupa_Config" objectType="user" id="#[payload.id]" />
+		<logger level="INFO" doc:name="Logger"
+			doc:id="19d2e3a7-6b16-4777-a865-310b492f68f9"
+			message=" #[&quot;Request for updating Coupa user with email : -  &quot;++ payload .email  default '' ++ &quot; and coupa Id :- &quot; ++  payload.id default '' ++ &quot; is SUCCESSFULLY completed.&quot;]" />
+		<error-handler>
+			<on-error-propagate enableNotifications="true"
+				logException="true" doc:name="On Error propagate"
+				doc:id="48597580-23b1-44fc-ac45-9549ceb9199c">
+				<logger level="ERROR" doc:name="Logger"
+					doc:id="08a948d5-628c-49b6-8752-8a8c22cdf837"
+					message="#[error.exception.errorMessage.typedValue]" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="createUserInCoupa"
+		doc:id="8d587384-703b-4da6-98cb-b4510be5ea89">
+		<http:listener doc:name="Listener"
+			doc:id="50f3a5cc-c439-4d2e-9379-b37e1360463b"
+			config-ref="HTTP_Listener_config" path="createEmployeeInCoupa"
+			allowedMethods="POST" />
+		<logger level="INFO" doc:name="Logger"
+			message=" #[&quot;Request received for creating Coupa user with email : -  &quot;++ payload .email default ''++ &quot;.&quot;]" />
+		<ee:transform doc:name="Transform Message"
+			doc:id="6ccf244e-c017-4675-abd8-b0c5e1fd21a3">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	login: payload.email,
+	email: payload.email,
+	"sso-identifier": payload.email,
+	lastname: payload.lastName,
+	firstname: payload.firstName,
+	active: true,
+	"employee-number": payload.externalId,
+	"expense-user": true,
+	"purchasing-user": if (payload.purchaseOrderLimit != null and payload.purchaseOrderLimit > 0 ) true else false,
+	"custom-fields": {
+		"subsidary": {
+			"external-ref-num": payload.subsidiary.internalId
+		},
+//		"location": {"external-ref-num": payload.location.internalId},
+		"dept": {
+			"external-ref-num": payload.department.internalId
+		},
+		"ns-employee-id": payload.internalId,
+		"company-paid-credit-card": payload.customFieldList.customField.BooleanCustomFieldRef__custentity_cg_cc_user
+	},
+	"default-account-type": {
+		id: 2
+	},
+	"requisition-approval-limit": {
+        "amount": payload.purchaseOrderApprovalLimit,
+        "currency": {
+            "code": payload.currency.name
+        }
+    },
+	"expense-approval-limit": {
+		amount: payload.approvalLimit,
+		currency: {
+			code: payload.currency.name
+		}
+	},
+	"invoice-approval-limit": {
+        "amount": payload.purchaseOrderApprovalLimit,
+        "currency": {
+            "code": payload.currency.name
+         }
+    },
+    "requisition-self-approval-limit": {
+        "amount": payload.purchaseOrderLimit,
+        "currency": {
+            "code": payload.currency.name
+         }
+    },
+	"mention-name": "",
+	"default-currency": {
+		"code": payload.currency.name
+	},
+	"authentication-method": "saml",
+	"manager": {
+		"id": payload.managerCoupaId
+	},
+	"roles":if (payload.purchaseOrderLimit != null and payload.purchaseOrderLimit > 0 )[
+		{	"name": "Expense User"	},
+		{	"name": "Zym User"		}
+	] else [
+		{	"name": "Expense User"	}
+	]
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<coupa:create-object doc:name="createUser"
+			doc:id="c909f681-3287-42cb-a94a-b9bd034bbd6e"
+			config-ref="Coupa_Config" objectType="user" />
+		<logger level="INFO" doc:name="Logger"
+			doc:id="6bcdfb8e-dc5c-45d2-82e3-1522658928ce"
+			message=" #[&quot;Request for creating Coupa user with email : -  &quot;++ payload .email  default '' ++ &quot; and coupa Id :- &quot; ++  payload.id default '' ++ &quot; is SUCCESSFULLY completed.&quot;]" />
+		<error-handler>
+			<on-error-propagate enableNotifications="true"
+				logException="true" doc:name="On Error propagate"
+				doc:id="5a52adb2-ac26-4fd6-ae66-f8c0c9845525">
+				<logger level="ERROR" doc:name="Logger"
+					doc:id="982d6507-15af-48b7-a721-29f240552b1c"
+					message="#[error.exception.errorMessage.typedValue]" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+
+	<flow name="updateSupplierInCoupaById"
+		doc:id="c52c2422-5b6f-4b0d-bec6-7d5f899c24ee">
+		<http:listener doc:name="Listener"
+			doc:id="ae3eacda-ce9d-40dc-96aa-41de494b09e2"
+			config-ref="HTTP_Listener_config" path="updateSupplierInCoupaById"
+			allowedMethods="PUT" />
+		<logger level="INFO" doc:name="Logger"
+			doc:id="f50ea72f-041d-4114-ac14-5ecdb067afce"
+			message=" #[&quot;Request received for updating Coupa vendor with name : -  &quot;++ payload.entityId default '' ++ &quot;.&quot;]" />
+		<ee:transform doc:name="Transform Message"
+			doc:id="b83bad5a-999c-40cc-8400-7c4542af3178">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+//check if the vendor/supplier is disabled if yes disable  in coupa and exit else 
+if (payload.isInactive == true) 
+{
+	id: payload.customFieldList.customField[0].LongCustomFieldRef__custentity_cg_coupa_entity_id,
+	status: "inactive"
+} 
+else(
+{
+	id: payload.customFieldList.customField[0].LongCustomFieldRef__custentity_cg_coupa_entity_id,
+	name: payload.entityId,
+	"display-name": payload.entityId,
+	number: payload.internalId,
+	status: "active",
+	"po-method": "prompt",
+	"po-change-method": "prompt",
+	"payment-method": "invoice",
+	"po-email": payload.customFieldList.customField.StringCustomFieldRef__custentity_cg_coupa_po_contact[0],
+	"account-number": payload.accountNumber,
+	"tax-id": payload.taxIdNum,
+	"invoice-matching-level": "3-way",
+	"primary-contact": {
+		"phone-work": {
+			number: payload.phone
+		}
+	},
+	"primary-address": {
+		street1: payload.addressbookList.addressbook[0].addressbookAddress.addr1,
+		city: payload.addressbookList.addressbook[0].addressbookAddress.city,
+		state: payload.addressbookList.addressbook[0].addressbookAddress.state,
+		"postal-code": payload.addressbookList.addressbook[0].addressbookAddress.zip,
+		(country: {
+			name: (payload.addressbookList.addressbook[0].addressbookAddress.addrText splitBy("\n"))[-1]
+			}	
+			) if ((payload.addressbookList.addressbook[0].addressbookAddress.addrText) != null)		
+	},
+("payment-term": {
+  code: payload.terms.name
+})if ((payload.terms.name) != null),
+"custom-fields": {
+  "ns_id": payload.internalId
+},
+("shipping-term":{
+  code: payload.incoterm.name
+}) if ((payload.incoterm.name) != null)
+}
+//else is closed here below
+)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<coupa:update-object doc:name="UpdateSupplier"
+			doc:id="f8987481-facb-43e2-8d9a-d00beb04bfe8"
+			config-ref="Coupa_Config" objectType="supplier" id="#[payload.id]" />
+		<logger level="INFO" doc:name="Logger"
+			doc:id="03fc5925-4080-4661-93fd-2a20fe719256"
+			message=" #[&quot;Request for updating Coupa supplier with coupa Id :- &quot; ++  payload.id default '' ++ &quot; is SUCCESSFULLY completed.&quot;]" />
+		<error-handler>
+			<on-error-propagate enableNotifications="true"
+				logException="true" doc:name="On Error propagate"
+				doc:id="fb47bc12-a129-49c6-892e-5571d62e3927">
+				<logger level="ERROR" doc:name="Logger"
+					doc:id="f017f7d4-7c3d-4d45-8eb7-6ce8d652f2b0"
+					message="#[error.exception.errorMessage.typedValue]" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="createSupplierInCoupa"
+		doc:id="80f5d52f-6447-4a5a-b033-6101f09b6236">
+		<http:listener doc:name="Listener"
+			doc:id="bf4d8c37-54d3-40cd-8ade-09ca7f852b75"
+			config-ref="HTTP_Listener_config" path="createSupplierInCoupa"
+			allowedMethods="POST" />
+		<logger level="INFO" doc:name="Logger"
+			message=" #[&quot;Request received for creating Coupa vendor with name : -  &quot;++ payload.entityId default ''++ &quot;.&quot;]" />
+		<ee:transform doc:name="Transform Message"
+			doc:id="f7b12149-f1c5-45a4-98ec-4f0ec66d26a0">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	name: payload.entityId,
+	"display-name": payload.entityId,
+	number: payload.internalId,
+	status: "active",
+	"po-method": "prompt",
+	"po-change-method": "prompt",
+	"payment-method": "invoice",
+	"po-email": payload.customFieldList.customField.StringCustomFieldRef__custentity_cg_coupa_po_contact[0],
+    "account-number": payload.accountNumber,
+	"tax-id": payload.taxIdNum,
+	"invoice-matching-level": "3-way",
+	"primary-contact": {
+		"phone-work": {
+			number: payload.phone
+		}
+	},
+	"primary-address": {
+		street1: payload.addressbookList.addressbook[0].addressbookAddress.addr1,
+		city: payload.addressbookList.addressbook[0].addressbookAddress.city,
+		state: payload.addressbookList.addressbook[0].addressbookAddress.state,
+		"postal-code": payload.addressbookList.addressbook[0].addressbookAddress.zip,
+		(country: {
+			name: (payload.addressbookList.addressbook[0].addressbookAddress.addrText splitBy("\n"))[-1]
+			}	
+			) if ((payload.addressbookList.addressbook[0].addressbookAddress.addrText) != null)		
+	},
+	("payment-term": {
+		code: payload.terms.name
+	})if ((payload.terms.name) != null),
+	"custom-fields": {
+		"ns_id": payload.internalId
+	},
+	("shipping-term":{
+		code: payload.incoterm.name
+	}) if ((payload.incoterm.name) != null)	,
+	"buyer-hold": true
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<coupa:create-object doc:name="createSupplier"
+			doc:id="c91cba4c-8d48-4d81-a4d2-b4607bcf7311"
+			config-ref="Coupa_Config" objectType="supplier" />
+		<logger level="INFO" doc:name="Logger"
+			doc:id="360dcc4e-ade5-4f9f-8fb5-48cc9fc0e188"
+			message=" #[&quot;Request for creating Coupa supplier &quot; ++ &quot; with coupa Id :- &quot; ++  payload.id default '' ++ &quot; is SUCCESSFULLY completed.&quot;]" />
+		<error-handler>
+			<on-error-propagate enableNotifications="true"
+				logException="true" doc:name="On Error propagate"
+				doc:id="eb609565-9a92-4340-8f23-fde17d87a0be">
+				<logger level="ERROR" doc:name="Logger"
+					doc:id="f6ff40ff-ef3e-4f15-9653-cdabe93f9fa7"
+					message="#[error.exception.errorMessage.typedValue]" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+
+	<flow name="updateItemInCoupaById"
+		doc:id="f0dfcabe-7c3a-47e2-b193-e333512b9fe5">
+		<http:listener doc:name="Listener"
+			doc:id="5efc21bf-c8a4-450f-ae41-d70f0a8b96d5"
+			config-ref="HTTP_Listener_config" path="updateItemInCoupaById"
+			allowedMethods="PUT" />
+		<logger level="INFO" doc:name="Logger"
+			doc:id="88dc9a0c-dd03-4206-9f3c-380b2f4c52f1"
+			message=" #[&quot;Request received for updating Coupa item with name : -  &quot;++ payload.displayName default '' ++ &quot;.&quot;]" />
+		<ee:transform doc:name="Transform Message"
+			doc:id="65bd1818-e128-4c7f-9993-8c3d0daeb752">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+if (payload.isInactive == true) 
+{
+	id: payload.customFieldList.customField[0].LongCustomFieldRef__custitem_cg_coupa_internal_id,
+	active: false
+} 
+else(
+{
+	id: payload.customFieldList.customField[0].LongCustomFieldRef__custitem_cg_coupa_internal_id,
+	description:payload.purchaseDescription,
+	item_number:payload.itemId,
+	name: payload.displayName,
+	"custom-fields": {
+		"direct-item": true,
+  		item_category: payload.customFieldList.customField.SelectCustomFieldRef__custitem_item_category[0].name,
+		ns_item_id: payload.internalId
+		}	
+	}
+)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="PUT" doc:name="Update Item"
+			doc:id="0033a5d8-e2b8-4f84-ba5d-d0c2d47fdb70"
+			path="#[p('secure::http.requester.itemPath')++ payload.id]"
+			config-ref="HTTP_Request_configuration_Coupa" />
+		<logger level="INFO" doc:name="Logger"
+			doc:id="200ccb6d-bc4f-4b36-bba1-47a22827e549"
+			message=" #[&quot;Request for updating Coupa item with coupa Id :- &quot; ++  payload.id default '' ++ &quot; is SUCCESSFULLY completed.&quot;]" />
+		<error-handler>
+			<on-error-propagate enableNotifications="true"
+				logException="true" doc:name="On Error propagate"
+				doc:id="aa8d75ae-66a1-4201-9874-e9c47685c508">
+				<logger level="ERROR" doc:name="Logger"
+					doc:id="735ec500-a714-46fe-a87b-b4ee89c3df55"
+					message="#[error.exception.errorMessage.typedValue]" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="createItemInCoupa"
+		doc:id="bcb2d277-8f22-411e-9e5f-b9a3ab20b9a5">
+		<http:listener doc:name="Listener"
+			doc:id="dac625ac-831b-4cb3-a92f-1253a86dc473"
+			config-ref="HTTP_Listener_config" path="createItemInCoupa"
+			allowedMethods="POST" />
+		<logger level="INFO" doc:name="Logger"
+			message=" #[&quot;Request received for creating Coupa item with name : -  &quot;++ payload.displayName default ''++ &quot;.&quot;]" />
+		<ee:transform doc:name="Transform Message"
+			doc:id="a6420df0-5260-48b4-aaf1-9125a7d8678d">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	active: true,
+	description:payload.purchaseDescription,
+	item_number:payload.itemId,
+	name: payload.displayName,
+	"custom-fields": {
+		"direct-item": true,
+  		item_category: payload.customFieldList.customField.SelectCustomFieldRef__custitem_item_category[0].name,
+		ns_item_id: payload.internalId
+	}	
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="POST" doc:name="CreateItem"
+			doc:id="cf23fb3d-2ab8-4fb7-914c-19abc646c3c8"
+			path="${secure::http.requester.itemPath}"
+			config-ref="HTTP_Request_configuration_Coupa" />
+		<logger level="INFO" doc:name="Logger"
+			doc:id="9f5cca8c-2953-4de5-a9c8-3b5e2f69fae8"
+			message=" #[&quot;Request for creating Coupa item with coupa Id :- &quot; ++  payload.id default '' ++ &quot; is SUCCESSFULLY completed.&quot;]" />
+		<error-handler>
+			<on-error-propagate enableNotifications="true"
+				logException="true" doc:name="On Error propagate"
+				doc:id="c8db372c-8dfe-47b4-b2d3-5c64ad8758ac">
+				<logger level="ERROR" doc:name="Logger"
+					doc:id="53cd84c3-657c-4d3b-b077-74da43acb6ce"
+					message="#[error.exception.errorMessage.typedValue]" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+
+	
+
+</mule>

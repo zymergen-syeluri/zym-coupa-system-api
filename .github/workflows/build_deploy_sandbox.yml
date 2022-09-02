@@ -75,7 +75,7 @@ jobs:
          -Dmule.artifact=$artifactName \
          -Dusername="$USERNAME" \
          -Dpassword="$PASSWORD" \
-         -Dapp.name="$APPLICATIONNAME"\
-         -Denv="ENV"\
-         -Dkey="KEY"\
+         -Dapp.name=${{ secrets.APPLICATIONNAME }}\
+         -Denv=${{ secrets.ENV }}\
+         -Dkey=${{ secrets.KEY }}\
          -DskipTests

@@ -76,6 +76,6 @@ jobs:
          -Dusername="$USERNAME" \
          -Dpassword="$PASSWORD" \
          -Dapp.name="$APPLICATIONNAME"\
-         -Dmule.env="ENV"\
-         -Dencryption.key="KEY"\
+         -Denv="ENV"\
+         -Dkey="KEY"\
          -DskipTests

@@ -1,0 +1,33 @@
+http:
+  listener:
+    host: "0.0.0.0"
+    port: "8081"
+    timeout: "300000"
+    basepath: "coupaSystemAPI"
+    
+    reconnection:
+      frequency: "2000"
+      attempts: "10"
+
+  requester:
+    exchangeRatePath: "/api/exchange_rates"
+    itemPath: "/api/items/"
+    lookupValuespath: "/api/lookup_values/"
+    expenseReportsPath: "/api/expense_reports/"
+    invoicesPath: "/api/invoices/"
+    updateInvoicePath : "/api/invoices/{id}"
+    invoicesAttachmentPath: "/api/invoices/{invoiceId}/attachments"
+    
+    queryParam:
+      name: "ACCEPT"
+      value: "application/json"
+
+coupa:
+  api:
+    key: "X-COUPA-API-KEY"
+    value: "![b5bh3YMI6yuL/uKMZbU/teYfFnibQpj+JY1kvDKdwvKiNKmRdge5miVwLOnSy8vg]"
+    instance: "zymergen.coupahost.com"
+  
+    reconnection:
+      frequency: "2000"
+      attempts: "10"

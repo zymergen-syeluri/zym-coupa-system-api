@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:coupa="http://www.mulesoft.org/schema/mule/coupa"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/coupa http://www.mulesoft.org/schema/mule/coupa/current/mule-coupa.xsd">
+	<flow name="updateLookupValuesInCoupaById"
+		doc:id="bb235370-d94b-4801-a576-1e04aaadc87b">
+		<http:listener doc:name="Listener"
+			doc:id="614147a2-4b1e-4cc9-97a2-7683fc434fe6"
+			config-ref="HTTP_Listener_config"
+			path="updateLookupValuesInCoupaById" allowedMethods="PUT" />
+		<logger level="INFO" doc:name="Logger"
+			doc:id="f6456d50-88a3-4b71-b626-e680450f89a2"
+			message="#[&quot;Updating the '&quot; ++ payload.lookup.name ++&quot;' lookup in Coupa for &quot; ++ payload.name ++ &quot;(nestuiteID: &quot; ++ payload.&quot;external-ref-num&quot; ++ &quot;)&quot;]" />
+		<http:request method="PUT"
+			doc:name="updateLookupValueInCoupa"
+			doc:id="4652f016-9ce4-4b3b-9e74-46ffd8170b3e"
+			path="#[p('secure::http.requester.lookupValuespath') ++ attributes.queryParams.'coupaId']"
+			config-ref="HTTP_Request_configuration_Coupa">
+		</http:request>
+		<logger level="INFO" doc:name="Logger"
+			doc:id="3f6d843a-08e7-42c9-854f-3de7150b5829"
+			message='#["++++++++++ lookup: " ++ payload.name ++ "(coupaId: " ++ payload.id ++ ")updated Successfully ++++++++++++"]' />
+		<error-handler>
+			<on-error-propagate enableNotifications="true"
+				logException="true" doc:name="On Error propagate"
+				doc:id="f188c717-c4d3-40b0-ab00-5c00c579be58">
+				<logger level="ERROR" doc:name="Logger"
+					doc:id="c23e3542-76f9-4380-bed2-cb6d1a6cf510"
+					message="#[error.exception.errorMessage.typedValue]" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+
+	<flow name="updateExpenseReportById"
+		doc:id="bca6b1e1-d5c4-44f1-8cc1-3abebb245e87">
+		<http:listener doc:name="Listener"
+			doc:id="27f57243-b7c1-4108-9b47-5ff798eba1fe"
+			config-ref="HTTP_Listener_config" path="updateExpenseReportById"
+			allowedMethods="PUT" >
+			<http:error-response >
+				<http:body ><![CDATA[#[output text/plain --- (error.description default "") ++ "--"++ (error.exception.errorMessage.typedValue.^raw default "")]]]></http:body>
+			</http:error-response>
+		</http:listener>
+		<logger level="INFO" doc:name="Logger"
+			doc:id="fc521879-ca8b-46b2-b6a2-a52f9c5a52c8"
+			message="#[&quot; Updating the Expense Report in Coupa for ID: &quot; ++ attributes.queryParams.'coupaId']" />
+		<http:request method="PUT" doc:name="updateExpenseReport"
+			doc:id="b457c2a1-7a60-422b-8e66-c1fd68bae5dd"
+			config-ref="HTTP_Request_configuration_Coupa"
+			path="#[p('secure::http.requester.expenseReportsPath') ++ attributes.queryParams.'coupaId']" />
+		<!-- <coupa:update-object objectType="expense-report" doc:name="updateExpenseReport" 
+			doc:id="b71e3666-220f-48d4-b786-1854e7e8eb17" config-ref="Coupa_Config" id="#[attributes.queryParams.'coupaId']"> 
+			</coupa:update-object> -->
+		<logger level="INFO" doc:name="Logger"
+			doc:id="eb341761-2a62-4092-af6f-cfac1e3052a7"
+			message='#["++++++++++ Expense Report updated Successfully ++++++++++++"]' />
+		<error-handler>
+			<on-error-propagate enableNotifications="true"
+				logException="true" doc:name="On Error propagate"
+				doc:id="4aca087e-62ae-4f6a-8695-eb038b66daac">
+				<logger level="ERROR" doc:name="Logger"
+					doc:id="2f0707ec-8b86-428a-a895-5cedcf7091f7"
+					message="#[error.exception.errorMessage.typedValue]" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+
+	<flow name="updateInvoiceById"
+		doc:id="a9d4d1a8-2fb3-4506-a62c-7f5a36dac2b1">
+		<http:listener doc:name="Listener"
+			doc:id="2b170c0f-e3b4-4f30-9d15-5beb5b5b82c6"
+			config-ref="HTTP_Listener_config" path="updateInvoiceById"
+			allowedMethods="PUT" >
+			<http:error-response >
+				<http:body ><![CDATA[#[output text/plain --- (error.description default "") ++ "--"++ (error.exception.errorMessage.typedValue.^raw default "")]]]></http:body>
+			</http:error-response>
+		</http:listener>
+		<logger level="INFO" doc:name="Logger"
+			doc:id="29754a84-4e86-4898-9738-eb7012cd047e"
+			message="#[&quot; Updating the invoice in Coupa for Id: &quot; ++ attributes.queryParams.'coupaId' default &quot;&quot;]" />
+			<http:request method="PUT" doc:name="updateInvoices"
+			doc:id="9b720726-4c58-473c-9cd2-166a8578bb68"
+			config-ref="HTTP_Request_configuration_Coupa"
+			path="#[p('secure::http.requester.invoicesPath') ++ attributes.queryParams.'coupaId']" />
+		<!-- <coupa:update-object objectType="invoice"
+			doc:name="updateInvoice"
+			doc:id="89330bf7-2170-43da-87ab-2caae6a0c591"
+			config-ref="Coupa_Config" id="#[attributes.queryParams.'coupaId']">
+		</coupa:update-object> -->
+		<logger level="INFO" doc:name="Logger"
+			doc:id="39b44be4-f903-4faa-b77c-278ccb66f9c7"
+			message='#["++++++++++ Invoice updated Successfully ++++++++++++"]' />
+		<error-handler>
+			<on-error-propagate enableNotifications="true"
+				logException="true" doc:name="On Error propagate"
+				doc:id="e0ec5359-646d-4135-9997-2389eff1a2d2">
+				<logger level="ERROR" doc:name="Logger"
+					doc:id="8127a8a9-aaba-48b6-9fa6-5ef7afcf20e6"
+					message="#[error.exception.errorMessage.typedValue]" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+
+</mule>

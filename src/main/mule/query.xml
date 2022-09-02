@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:coupa="http://www.mulesoft.org/schema/mule/coupa"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/coupa http://www.mulesoft.org/schema/mule/coupa/current/mule-coupa.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+
+	<flow name="searchExpenseReportUsingCritera"
+		doc:id="daa0b9a0-c9b9-4a58-a0a1-d94346506c30">
+		<http:listener doc:name="Listener"
+			doc:id="5d6f1967-562c-46f8-ba0c-59cb08aae226"
+			config-ref="HTTP_Listener_config"
+			path="searchExpenseReportUsingCritera" allowedMethods="GET" />
+		<logger level="INFO" doc:name="Logger"
+			doc:id="0f796eff-ea95-4520-a977-13adb6b0ca07"
+			message='#["++++++++++++++++ Request received for fetching Expense Report +++++++++++++++"]' />
+		<coupa:query-objects doc:name="expenseReportQuery"
+			doc:id="4420f0d7-2c1c-49c9-accf-015f558f82cf"
+			config-ref="Coupa_Config" objectType="expense-report">
+			<reconnect />
+			<coupa:params>
+				<coupa:coupa-operator-attribute
+					field="updated-at[gt_or_eq]"
+					value="#[attributes.queryParams.fromTimeStamp]" />
+				<coupa:coupa-operator-attribute
+					field="status[contains]" value="#[attributes.queryParams.status]" />
+				<coupa:coupa-operator-attribute
+					field="updated-at[lt]"
+					value="#[attributes.queryParams.toTimeStamp]" />
+			</coupa:params>
+		</coupa:query-objects>
+		<ee:transform doc:name="Transform Message"
+			doc:id="fa8060d7-4dd9-4e14-95db-2b1dd30be12a">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger"
+			doc:id="ec8a0873-2396-4a1f-b866-250846d5a00f"
+			message='#["++++++++++++++++ Expense Report fetched successfully +++++++++++++++++++ Count : " ++ sizeOf(payload)]' />
+		<error-handler>
+			<on-error-propagate enableNotifications="true"
+				logException="true" doc:name="On Error propagate"
+				doc:id="832ff909-6b66-449e-8dcd-919ea353055d">
+				<logger level="ERROR" doc:name="Logger"
+					doc:id="4f705ce4-d912-4bae-aa9f-3f037ddee7c4"
+					message="#[error.exception.errorMessage.typedValue]" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+
+	<flow name="searchInvoiceUsingCritera"
+		doc:id="e9fcaaef-528a-49ee-916b-82e311056ee7">
+		<http:listener doc:name="Listener"
+			doc:id="c8932f5f-30cb-412e-bfec-6be788fc9140"
+			config-ref="HTTP_Listener_config" path="searchInvoiceUsingCritera"
+			allowedMethods="GET" />
+		<logger level="INFO" doc:name="Logger"
+			doc:id="be46988e-a004-4b11-be9c-6e7a57dbccd4"
+			message='#["++++++++++++++++ Request received for fetching Invoice(s) +++++++++++++++"]' />
+		<coupa:query-objects doc:name="invoiceQuery"
+			doc:id="148ee5cc-2ea7-4409-b59d-0349b5d002b2"
+			config-ref="Coupa_Config" objectType="invoice">
+			<reconnect />
+			<coupa:params>
+				<coupa:coupa-operator-attribute
+					field="updated-at[gt_or_eq]"
+					value="#[attributes.queryParams.fromTimeStamp]" />
+				<coupa:coupa-operator-attribute
+					field="status[contains]" value="#[attributes.queryParams.status]" />
+				<coupa:coupa-operator-attribute
+					field="updated-at[lt]"
+					value="#[attributes.queryParams.toTimeStamp]" />
+				<coupa:coupa-operator-attribute field="custom-fields[ns-id][blank]" value='#[true]' />
+				<coupa:coupa-operator-attribute field="custom-fields[vendor-credit-ns-id][blank]" value='#[true]'/>
+			</coupa:params>
+		</coupa:query-objects>
+		<ee:transform doc:name="Transform Message"
+			doc:id="0a8c479d-f2fb-43cb-bd7b-e733ed610eba">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger"
+			doc:id="e8d652d7-36d1-4de5-b7dc-017da67a1a0f"
+			message='#["++++++++++++++++ Invoice(s) fetched successfully +++++++++++++++++++ Count : " ++ sizeOf(payload)]' />
+		<error-handler>
+			<on-error-propagate enableNotifications="true"
+				logException="true" doc:name="On Error propagate"
+				doc:id="97a21b0d-962b-4ecf-893b-c6c8e9eede98">
+				<logger level="ERROR" doc:name="Logger"
+					doc:id="a3a2f112-50f9-4420-97a2-b370a4679d28"
+					message="#[error.exception.errorMessage.typedValue]" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>

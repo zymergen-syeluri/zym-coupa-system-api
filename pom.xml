@@ -36,8 +36,8 @@
 						<username>${username}</username>
 						<password>${password}</password>
 						<applicationName>${app.name}</applicationName>
-						<env>${mule.env}</env>
-						<key>${encryption.key}</key>
+						<env>${env}</env>
+						<key>${key}</key>
 						<environment>Sandbox</environment>
 						<workerType>MICRO</workerType>
 						<region>us-west-1</region>

@@ -16,7 +16,7 @@ http://www.mulesoft.org/schema/mule/oauth http://www.mulesoft.org/schema/mule/oa
 	<secure-properties:config
 		name="Secure_Properties_Config" doc:name="Secure Properties Config"
 		doc:id="5bd2456a-2685-47b1-a296-1a1518a89976"
-		file="${mule.env}-config.yaml" key="${encryption.key}">
+		file="${env}-config.yaml" key="${key}">
 	</secure-properties:config>
 
 	<coupa:config name="Coupa_Config" doc:name="Coupa Config"

@@ -54,7 +54,7 @@ jobs:
         SLACK_MSG_AUTHOR: $GITHUB_ACTOR
         SLACK_TITLE: Message
         SLACK_MESSAGE: Build success
-        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
         SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
         
   sandox-deploy:

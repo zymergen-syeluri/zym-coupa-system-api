@@ -47,25 +47,13 @@ jobs:
           path: target/*.jar
     
     - name: Notify slack 
-      uses: slackapi/slack-github-action@v1.18.0
-      if: ${{ success() }}
-      with:
-        payload: |
-          {
-            "blocks" : [
-              {
-                "type" : "section",
-                "text" : {
-                  "type" : "mrkdwn",
-                  "text" : "*GitHub Action Job result: ${{ job.status }}*\n*For more details, follow the link:* ${{ github.server_url }}/${{ github.repository }}/action/runs/${{ github.run_id }}"
-                }
-              },
-              {
-                "type" : "divider"
-              }
-            ]
-          }
+      uses: rtCamp/action-slack-notify@v2
       env:
+        SLACK_CHANNEL: integration_team_builds
+        SLACK_COLOR: good
+        SLACK_MSG_AUTHOR: $GITHUB_ACTOR
+        SLACK_TITLE: Message
+        SLACK_MESSAGE: Build success
         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
         

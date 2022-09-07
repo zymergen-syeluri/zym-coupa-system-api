@@ -47,6 +47,16 @@ jobs:
       with:
           name: artifacts
           path: target/*.jar
+    
+    - name: Notify slack success
+      if: success()
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      uses: voxmedia/github-action-slack-notify-build@v1
+      with:
+        channel: integration_team_builds
+        status: SUCCESS
+        color: good
         
   sandox-deploy:
     needs: build

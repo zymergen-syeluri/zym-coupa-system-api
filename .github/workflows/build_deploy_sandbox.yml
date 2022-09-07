@@ -57,7 +57,7 @@ jobs:
                 "type" : "section",
                 "text" : {
                   "type" : "mrkdwn",
-                  "text" : "*GitHub Action Job result: ${{ job.status }}*\n*For more details, follow the link:* ${{ github.server_url }}/${{ github.repositor }}/action/runs/${{ github.run_id }}"
+                  "text" : "*GitHub Action Job result: ${{ job.status }}*\n*For more details, follow the link:* ${{ github.server_url }}/${{ github.repository }}/action/runs/${{ github.run_id }}"
                 }
               },
               {

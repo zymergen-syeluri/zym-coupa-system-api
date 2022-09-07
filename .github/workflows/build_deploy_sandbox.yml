@@ -10,8 +10,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     
     steps:
     
@@ -48,7 +46,7 @@ jobs:
           name: artifacts
           path: target/*.jar
     
-    - name: Notify slack success
+    - name: Notify slack 
       uses: slackapi/slack-github-action@v1.18.0
       if: ${{ success() }}
       with:
@@ -74,8 +72,6 @@ jobs:
   sandox-deploy:
     needs: build
     runs-on: ubuntu-latest
-    env:
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
     steps:    
     

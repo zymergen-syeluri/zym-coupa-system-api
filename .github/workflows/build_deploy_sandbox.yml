@@ -49,14 +49,27 @@ jobs:
           path: target/*.jar
     
     - name: Notify slack success
-      if: success()
+      uses: slackapi/slack-github-action@v1.18.0
+      if: ${{ success() }}
+      with:
+        payload: |
+          {
+            "blocks" : [
+              {
+                "type" : "section",
+                "text" : {
+                  "type" : "mrkdwn",
+                  "text" : "*GitHub Action Job result: ${{ job.status }}*\n*For more details, follow the link:* ${{ github.server_url }}/${{ github.repositor }}/action/runs/${{ github.run_id }}"
+                }
+              },
+              {
+                "type" : "divider"
+              }
+            ]
+          }
       env:
         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-      uses: voxmedia/github-action-slack-notify-build@v1
-      with:
-        channel: integration_team_builds
-        status: SUCCESS
-        color: good
+        SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
         
   sandox-deploy:
     needs: build

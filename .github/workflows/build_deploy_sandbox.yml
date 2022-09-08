@@ -76,6 +76,7 @@ jobs:
          -Dusername="$USERNAME" \
          -Dpassword="$PASSWORD" \
          -Dapp.name=${{ secrets.APPLICATIONNAME }}\
+         -Ddeploy.env=${{ secret.DEPLOY_ENV}}\
          -Denv=${{ secrets.ENV }}\
          -Dkey=${{ secrets.KEY }}\
          -DskipTests

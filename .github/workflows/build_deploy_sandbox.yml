@@ -45,18 +45,6 @@ jobs:
       with:
           name: artifacts
           path: target/*.jar
-    
-    - name: Notify slack 
-      uses: rtCamp/action-slack-notify@v2
-      env:
-        SLACK_CHANNEL: integration_team_builds
-        SLACK_COLOR: ${{ job.status }}
-        SLACK_MSG_AUTHOR: ${{ github.event.pull_request.user.login }}
-        SLACK_TITLE: Message
-        SLACK_MESSAGE: Build ${{ job.status }} - ${{ secrets.APPLICATIONNAME }}
-        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
-        SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
-      
         
   sandox-deploy:
     needs: build
@@ -91,14 +79,3 @@ jobs:
          -Denv=${{ secrets.ENV }}\
          -Dkey=${{ secrets.KEY }}\
          -DskipTests
-     
-    - name: Notify slack 
-      uses: rtCamp/action-slack-notify@v2
-      env:
-        SLACK_CHANNEL: integration_team_builds
-        SLACK_COLOR: ${{ job.status }}
-        SLACK_MSG_AUTHOR: ${{ github.event.pull_request.user.login }}
-        SLACK_TITLE: Message
-        SLACK_MESSAGE: Deploy ${{ job.status }} - ${{ secrets.APPLICATIONNAME }}
-        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
-        SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
